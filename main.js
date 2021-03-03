@@ -21,8 +21,15 @@ function setLoading(status) {
 
 function createWindow () {
   // Create the browser window.
-  mainWindow = new BrowserWindow({width: 800, height: 600})
+  mainWindow = new BrowserWindow({
+    width: 800,
+    height: 600,
+    webPreferences: {
+      nodeIntegration: true,
+    },
+  });
   mainWindow.setMinimumSize(600, 500)
+  mainWindow.maximize()
 
   // and load the index.html of the app.
   mainWindow.loadFile('index.html')
@@ -51,6 +58,12 @@ app.on('activate', function () {
   // dock icon is clicked and there are no other windows open.
   if(mainWindow === null) createWindow()
 })
+
+app.on('browser-window-focus', (event, win) => {
+  if (!win.isDevToolsOpened()) {
+    win.openDevTools();
+  }
+});
 
 // In this file you can include the rest of your app's specific main process
 // code. You can also put them in separate files and require them here.

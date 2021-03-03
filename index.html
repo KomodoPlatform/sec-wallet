@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <link rel="stylesheet" href="bootstrap.css">
     <link rel="stylesheet" href="style.css">
-    <title>SEC Wallet</title>
+    <title>Komodo Tokens Wallet</title>
   </head>
   <body>
     <!-- NAV-BAR -->
@@ -15,7 +15,7 @@
             <li class="sidebar-brand">
                 <a href="#">
                   <img src="img/sec_logo.png" height="35" class="d-inline-block" alt="">
-                  SEC Wallet 
+                  Tokens Wallet 
                 </a>
             </li>
             <li>
@@ -27,7 +27,9 @@
             <li>
               <a id="nav-trade" href="#">Trade</a>
             </li>
-            
+            <li>
+              <a id="nav-explorer" href="#">Tokens Explorer (PoC)</a>
+            </li>
             <hr>
 
             <li>
@@ -35,6 +37,9 @@
             </li>
             <li>
                 <button id="button-change-pubkey" type="button" class="btn btn-info btn-sm" data-toggle="modal" data-target="#modal-change-pubkey">Change Public key</button>
+            </li>
+            <li>
+                <button id="button-import-keys" type="button" class="btn btn-success btn-sm">Force import keys</button>  
             </li>
         </ul>
       </div>
@@ -68,9 +73,9 @@
             <form id="form-token-send">
               <div class="input-group mb-3">
                 <div class="input-group-prepend">
-                  <span class="input-group-text">Address</span>
+                  <span class="input-group-text">Pubkey</span>
                 </div>
-                <input id="input-token-address" class="form-control" placeholder="Enter the address of recipient" required>
+                <input id="input-token-address" class="form-control" placeholder="Enter the pubkey of recipient" required>
               </div>
     
               <div class="input-group mb-3">
@@ -132,7 +137,10 @@
                 <button id="button-new-address" class="btn btn-outline-secondary" type="button">New Address</button>
               </div>
             </div>
-            </form>
+            <div class="input-group mb-3"></div>
+              My tokens address <input id="myccaddress" type="text" class="form-control" placeholder="Loading the wallet address..." disabled>
+            </div>
+          </form>
           </div>
           
 
@@ -632,8 +640,6 @@
     </div>
 
 
-    <script>
-      require('./renderer.js')
-    </script>
+    <script src="./renderer.js"></script>
   </body>
 </html>

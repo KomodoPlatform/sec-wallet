@@ -1,0 +1,347 @@
+name: TokensWalletCI
+
+on: 
+  pull_request:
+    types: [opened, reopened]
+    branches:
+      - master
+      - dev
+jobs:
+  job-macos-build:
+    name: Build (MacOS)
+    runs-on: macos-latest
+
+    steps:
+    - uses: actions/checkout@v1
+    - uses: actions/setup-node@v1
+      with:
+        node-version: '12'
+        check-latest: true
+
+    - name: Build Electron App
+      env:
+        BASE_BRANCH: ${{ github.base_ref }}
+        APP_VERSION: $( node -pe "require('./package.json').version" )
+      run: |
+        ./fetch-kmd-bins.sh
+        rm -rf bin/linux64
+        rm -rf bin/win64
+        npm install
+        npm run dist
+        tar -czvf kmd-tokens-wallet-osx-${{ env.BASE_BRANCH }}-portable.tar.gz dist/mac
+        tar -czvf kmd-tokens-wallet-osx-${{ env.BASE_BRANCH }}-dmg.tar.gz dist/kmd-tokens-wallet-${{ env.APP_VERSION }}.dmg
+
+    - name: Upload kmd-tokens-wallet-osx-${{ env.BASE_BRANCH }}-portable.tar.gz as artifact
+      env:
+        BASE_BRANCH: ${{ github.base_ref }}
+      uses: actions/upload-artifact@v1
+      with:
+        name: kmd-tokens-wallet-osx-${{ env.BASE_BRANCH }}-dmg
+        path: ./kmd-tokens-wallet-osx-${{ env.BASE_BRANCH }}-dmg.tar.gz
+
+    - name: Upload kmd-tokens-wallet-osx-${{ env.BASE_BRANCH }}-dmg.tar.gz as artifact
+      env:
+        BASE_BRANCH: ${{ github.base_ref }}
+        APP_VERSION: $( node -pe "require('./package.json').version" )
+      uses: actions/upload-artifact@v1
+      with:
+        name: kmd-tokens-wallet-osx-${{ env.BASE_BRANCH }}-portable
+        path: ./kmd-tokens-wallet-osx-${{ env.BASE_BRANCH }}-portable.tar.gz
+
+  job-linux-build:
+    name: Build (Linux)
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v1
+    - uses: actions/setup-node@v1
+      with:
+        node-version: '12'
+        check-latest: true
+
+    - name: Build Electron App
+      env:
+        BASE_BRANCH: ${{ github.base_ref }}
+        APP_VERSION: $( node -pe "require('./package.json').version" )
+      run: |
+        ./fetch-kmd-bins.sh
+        rm -rf bin/osx
+        rm -rf bin/win64
+        npm install
+        npm run dist
+        tar -czvf kmd-tokens-wallet-linux-${{ env.BASE_BRANCH }}-portable.tar.gz dist/linux-unpacked
+        tar -czvf kmd-tokens-wallet-linux-${{ env.BASE_BRANCH }}-appimage.tar.gz dist/kmd-tokens-wallet-${{ env.APP_VERSION }}.AppImage
+        tar -czvf kmd-tokens-wallet-linux-${{ env.BASE_BRANCH }}-snap.tar.gz dist/kmd-tokens-wallet_${{ env.APP_VERSION }}_amd64.snap
+
+    - name: Upload kmd-tokens-wallet-linux-${{ env.BASE_BRANCH  }}-portable.tar.gz as artifact
+      env:
+        BASE_BRANCH: ${{ github.base_ref }}
+        APP_VERSION: $( node -pe "require('./package.json').version" )
+      uses: actions/upload-artifact@v1
+      with:
+        name: kmd-tokens-wallet-linux-${{ env.BASE_BRANCH  }}-portable
+        path: ./kmd-tokens-wallet-linux-${{ env.BASE_BRANCH  }}-portable.tar.gz
+
+    - name: Upload kmd-tokens-wallet-linux-${{ env.BASE_BRANCH  }}-appimage.tar.gz as artifact
+      env:
+        BASE_BRANCH: ${{ github.base_ref }}
+        APP_VERSION: $( node -pe "require('./package.json').version" )
+      uses: actions/upload-artifact@v1
+      with:
+        name: kmd-tokens-wallet-linux-${{ env.BASE_BRANCH  }}-appimage
+        path: ./kmd-tokens-wallet-linux-${{ env.BASE_BRANCH  }}-appimage.tar.gz
+
+    - name: Upload kmd-tokens-wallet-linux-${{ env.BASE_BRANCH  }}-snap.tar.gz as artifact
+      env:
+        BASE_BRANCH: ${{ github.base_ref }}
+        APP_VERSION: $( node -pe "require('./package.json').version" )
+      uses: actions/upload-artifact@v1
+      with:
+        name: kmd-tokens-wallet-linux-${{ env.BASE_BRANCH  }}-snap
+        path: ./kmd-tokens-wallet-linux-${{ env.BASE_BRANCH  }}-snap.tar.gz
+
+  job-win-build:
+    name: Build (Windows)
+    runs-on: windows-latest
+
+    steps:
+    - uses: actions/checkout@v1
+    - uses: actions/setup-node@v1
+      with:
+        node-version: '12'
+        check-latest: true
+
+    - name: Build Electron App
+      env:
+        BASE_BRANCH: ${{ github.base_ref }}
+        APP_VERSION: $( node -pe "require('./package.json').version" )
+      run: |
+        mkdir bin
+        mkdir bin/win64
+        cd bin/win64
+        curl https://github.com/pbca26/komodod/releases/download/cd_release_8688665_dev/komodo_8688665_dev_win.zip --output komodod.zip
+        unzip komodod.zip
+        rm komodod.zip
+        cd ../../
+        npm install
+        npm run dist
+        tar -czvf kmd-tokens-wallet-win-${{ env.BASE_BRANCH }}-portable.tar.gz dist/win-unpacked
+        tar -czvf kmd-tokens-wallet-win-${{ env.BASE_BRANCH }}-setup.tar.gz dist/kmd-tokens-wallet" Setup "${{ env.APP_VERSION }}.exe
+
+    - name: Upload kmd-tokens-wallet-win-${{ env.BASE_BRANCH }}-portable.tar.gz as artifact
+      env:
+        BASE_BRANCH: ${{ github.base_ref }}
+        APP_VERSION: $( node -pe "require('./package.json').version" )
+      uses: actions/upload-artifact@v1
+      with:
+        name: kmd-tokens-wallet-win-${{ env.BASE_BRANCH }}-portable
+        path: ./kmd-tokens-wallet-win-${{ env.BASE_BRANCH }}-portable.tar.gz
+
+    - name: Upload kmd-tokens-wallet-win-${{ env.BASE_BRANCH }}-setup.tar.gz as artifact
+      env:
+        BASE_BRANCH: ${{ github.base_ref }}
+        APP_VERSION: $( node -pe "require('./package.json').version" )
+      uses: actions/upload-artifact@v1
+      with:
+        name: kmd-tokens-wallet-win-${{ env.BASE_BRANCH }}-setup
+        path: ./kmd-tokens-wallet-win-${{ env.BASE_BRANCH }}-setup.tar.gz
+
+  job-release:
+    name: Release
+    runs-on: ubuntu-latest
+    needs: [job-macos-build, job-linux-build, job-win-build]
+
+    steps:
+      - name: ACTIONS_ALLOW_UNSECURE_COMMANDS
+        id: ACTIONS_ALLOW_UNSECURE_COMMANDS
+        run: echo 'ACTIONS_ALLOW_UNSECURE_COMMANDS=true' >> $GITHUB_ENV
+      - name: Download Artifacts Portable (Linux)
+        env:
+          BASE_BRANCH: ${{ github.base_ref }}
+        uses: actions/download-artifact@v1
+        with:
+          name: kmd-tokens-wallet-linux-${{ env.BASE_BRANCH }}-portable
+      - name: Download Artifacts App Image (Linux)
+        env:
+          BASE_BRANCH: ${{ github.base_ref }}
+        uses: actions/download-artifact@v1
+        with:
+          name: kmd-tokens-wallet-linux-${{ env.BASE_BRANCH }}-appimage
+      - name: Download Artifacts Snap (Linux)
+        env:
+          BASE_BRANCH: ${{ github.base_ref }}
+        uses: actions/download-artifact@v1
+        with:
+          name: kmd-tokens-wallet-linux-${{ env.BASE_BRANCH }}-snap
+      - name: Download Artifacts Portable (Win)
+        env:
+          BASE_BRANCH: ${{ github.base_ref }}
+        uses: actions/download-artifact@v1
+        with:
+          name: kmd-tokens-wallet-win-${{ env.BASE_BRANCH }}-portable
+      - name: Download Artifacts Setup (Win)
+        env:
+          BASE_BRANCH: ${{ github.base_ref }}
+        uses: actions/download-artifact@v1
+        with:
+          name: kmd-tokens-wallet-win-${{ env.BASE_BRANCH }}-setup
+      - name: Download Artifacts Portable (MacOS)
+        env:
+          BASE_BRANCH: ${{ github.base_ref }}
+        uses: actions/download-artifact@v1
+        with:
+          name: kmd-tokens-wallet-osx-${{ env.BASE_BRANCH }}-portable
+      - name: Download Artifacts DMG (MacOS)
+        env:
+          BASE_BRANCH: ${{ github.base_ref }}
+        uses: actions/download-artifact@v1
+        with:
+          name: kmd-tokens-wallet-osx-${{ env.BASE_BRANCH }}-dmg
+      - name: Prepare Archives
+        env:
+          BASE_BRANCH: ${{ github.base_ref }}
+        run: |
+          mv kmd-tokens-wallet-linux-${{ env.BASE_BRANCH }}-portable/kmd-tokens-wallet-linux-${{ env.BASE_BRANCH }}-portable.tar.gz .
+          mv kmd-tokens-wallet-linux-${{ env.BASE_BRANCH }}-appimage/kmd-tokens-wallet-linux-${{ env.BASE_BRANCH }}-appimage.tar.gz .
+          mv kmd-tokens-wallet-linux-${{ env.BASE_BRANCH }}-snap/kmd-tokens-wallet-linux-${{ env.BASE_BRANCH }}-snap.tar.gz .
+          mv kmd-tokens-wallet-win-${{ env.BASE_BRANCH }}-portable/kmd-tokens-wallet-win-${{ env.BASE_BRANCH }}-portable.tar.gz .
+          mv kmd-tokens-wallet-win-${{ env.BASE_BRANCH }}-setup/kmd-tokens-wallet-win-${{ env.BASE_BRANCH }}-setup.tar.gz .
+          mv kmd-tokens-wallet-osx-${{ env.BASE_BRANCH }}-portable/kmd-tokens-wallet-osx-${{ env.BASE_BRANCH }}-portable.tar.gz .
+          mv kmd-tokens-wallet-osx-${{ env.BASE_BRANCH }}-dmg/kmd-tokens-wallet-osx-${{ env.BASE_BRANCH }}-dmg.tar.gz .
+      - name: Prepare Checksum file
+        env:
+          BASE_BRANCH: ${{ github.base_ref }}
+        run: |
+          md5sum kmd-tokens-wallet-linux-${{ env.BASE_BRANCH }}-portable.tar.gz >> checksum.txt
+          md5sum kmd-tokens-wallet-linux-${{ env.BASE_BRANCH }}-appimage.tar.gz >> checksum.txt
+          md5sum kmd-tokens-wallet-linux-${{ env.BASE_BRANCH }}-snap.tar.gz >> checksum.txt
+          md5sum kmd-tokens-wallet-win-${{ env.BASE_BRANCH }}-portable.tar.gz >> checksum.txt
+          md5sum kmd-tokens-wallet-win-${{ env.BASE_BRANCH }}-setup.tar.gz >> checksum.txt
+          md5sum kmd-tokens-wallet-osx-${{ env.BASE_BRANCH }}-portable.tar.gz >> checksum.txt
+          md5sum kmd-tokens-wallet-osx-${{ env.BASE_BRANCH }}-dmg.tar.gz >> checksum.txt
+
+      # currently VT is limited to 32 mb files only, 4 requests per minute
+      # - name: VirusTotal Scan
+      #  env:
+      #    BASE_BRANCH: ${{ github.base_ref }}
+      #  uses: pbca26/ghaction-virustotal@v2.2.3
+      #  with:
+      #    vt_api_key: ${{ secrets.VT_API_KEY }}
+      #    files: |
+      #      ./kmd-tokens-wallet-linux-${{ env.BASE_BRANCH }}.tar.gz
+      #      ./kmd-tokens-wallet-osx-${{ env.BASE_BRANCH }}.tar.gz
+      #      ./kmd-tokens-wallet-win-${{ env.BASE_BRANCH }}.tar.gz
+
+      - name: Generate build number  # gen ${{ steps.buildnumber.outputs.build_number }} for release name
+        id: buildnumber
+        uses: einaregilsson/build-number@v1 
+        with:
+          token: ${{secrets.github_token}}        
+
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          BASE_BRANCH: ${{ github.base_ref }}
+        with:
+          tag_name: ${{ steps.buildnumber.outputs.build_number }}
+          release_name: Build - ${{ github.sha }}
+          draft: false
+          prerelease: true
+
+      - name: Upload Release Asset Portable (Linux)
+        id: upload-release-asset-linux-portable
+        uses: actions/upload-release-asset@v1.0.1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          BASE_BRANCH: ${{ github.base_ref }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./kmd-tokens-wallet-linux-${{ env.BASE_BRANCH }}-portable.tar.gz
+          asset_name: kmd-tokens-wallet-linux-${{ env.BASE_BRANCH }}-portable.tar.gz
+          asset_content_type: application/tar+gzip
+
+      - name: Upload Release Asset App Image (Linux)
+        id: upload-release-asset-linux-appimage
+        uses: actions/upload-release-asset@v1.0.1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          BASE_BRANCH: ${{ github.base_ref }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./kmd-tokens-wallet-linux-${{ env.BASE_BRANCH }}-appimage.tar.gz
+          asset_name: kmd-tokens-wallet-linux-${{ env.BASE_BRANCH }}-appimage.tar.gz
+          asset_content_type: application/tar+gzip
+
+      - name: Upload Release Asset Snap (Linux)
+        id: upload-release-asset-linux-snap
+        uses: actions/upload-release-asset@v1.0.1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          BASE_BRANCH: ${{ github.base_ref }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./kmd-tokens-wallet-linux-${{ env.BASE_BRANCH }}-snap.tar.gz
+          asset_name: kmd-tokens-wallet-linux-${{ env.BASE_BRANCH }}-snap.tar.gz
+          asset_content_type: application/tar+gzip
+
+      - name: Upload Release Asset Portable (Win)
+        id: upload-release-asset-win-portable
+        uses: actions/upload-release-asset@v1.0.1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          BASE_BRANCH: ${{ github.base_ref }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./kmd-tokens-wallet-win-${{ env.BASE_BRANCH }}-portable.tar.gz
+          asset_name: kmd-tokens-wallet-win-${{ env.BASE_BRANCH }}-portable.tar.gz
+          asset_content_type: application/tar+gzip
+
+      - name: Upload Release Asset Setup (Win)
+        id: upload-release-asset-win-setup
+        uses: actions/upload-release-asset@v1.0.1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          BASE_BRANCH: ${{ github.base_ref }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./kmd-tokens-wallet-win-${{ env.BASE_BRANCH }}-setup.tar.gz
+          asset_name: kmd-tokens-wallet-win-${{ env.BASE_BRANCH }}-setup.tar.gz
+          asset_content_type: application/tar+gzip
+
+      - name: Upload Release Asset Portable (MacOS)
+        id: upload-release-asset-macos-portable
+        uses: actions/upload-release-asset@v1.0.1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          BASE_BRANCH: ${{ github.base_ref }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./kmd-tokens-wallet-osx-${{ env.BASE_BRANCH }}-portable.tar.gz
+          asset_name: kmd-tokens-wallet-osx-${{ env.BASE_BRANCH }}-portable.tar.gz
+          asset_content_type: application/tar+gzip
+
+      - name: Upload Release Asset DMG (MacOS)
+        id: upload-release-asset-macos-dmg
+        uses: actions/upload-release-asset@v1.0.1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          BASE_BRANCH: ${{ github.base_ref }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./kmd-tokens-wallet-osx-${{ env.BASE_BRANCH }}-dmg.tar.gz
+          asset_name: kmd-tokens-wallet-osx-${{ env.BASE_BRANCH }}-dmg.tar.gz
+          asset_content_type: application/tar+gzip
+
+      - name: Upload Checksum File
+        id: upload-release-asset-checksum
+        uses: actions/upload-release-asset@v1.0.1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          BASE_BRANCH: ${{ github.base_ref }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./checksum.txt
+          asset_name: checksum.txt
+          asset_content_type: text/plain
